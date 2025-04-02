@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # Your n8n application service (e.g., a web server)
   server_n8n:
