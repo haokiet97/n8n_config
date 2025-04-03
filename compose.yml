@@ -2,8 +2,10 @@ services:
   # Your n8n application service (e.g., a web server)
   server_n8n:
     image: n8nio/n8n
+    dns: 1.1.1.1
     container_name: cont_n8n
     environment:
+      - N8N_TRUST_PROXY=true
       - N8N_SECURE_COOKIE=false
       - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
       - N8N_EDITOR_BASE_URL=${EXTERNAL_IP}
@@ -33,4 +35,3 @@ services:
 networks:
   n8n_network:
     driver: bridge
-
