@@ -18,8 +18,9 @@ apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 echo "--------- 🔴 Finish install docker -----------"
 echo "--------- 🟢 Start creating folder -----------"
 cd ~
-mkdir n8n/vol_n8n
+mkdir n8n
 cd n8n
+mkdir vol_n8n
 chown -R 1000:1000 vol_n8n
 chmod -R 755 vol_n8n
 echo "--------- 🔴 Finish creating folder -----------"
