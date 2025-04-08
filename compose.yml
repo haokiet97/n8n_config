@@ -23,6 +23,8 @@ services:
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     environment:
       - TZ=Asia/Ho_Chi_Minh
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - n8n_network
     depends_on:
