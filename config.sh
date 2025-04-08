@@ -27,4 +27,4 @@ EOF
 # Hiển thị thông báo thành công
 echo "Đã lưu các biến vào file .env:"
 cat .env
-
+source ./.env
