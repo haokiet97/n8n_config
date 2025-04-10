@@ -27,5 +27,5 @@ echo "--------- 🔴 Finish creating folder -----------"
 echo "--------- 🟢 Start docker compose up  -----------"
 apt install wget -y
 wget https://raw.githubusercontent.com/haokiet97/n8n_config/refs/heads/main/compose.yml -O compose.yaml
-docker compose build
+docker compose pull
 echo "--------- 🔴 Finish! Let's start run_n8n.sh to start -----------"
