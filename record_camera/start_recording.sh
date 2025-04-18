@@ -1,8 +1,31 @@
 #!/bin/bash
 
-CONFIG_FILE="config.yaml"
+CONFIG_FILE="${PWD}/config.yaml"
 
-# Hàm kiểm tra kết nối camera
+# Hàm đọc YAML cho yq-jq wrapper
+get_yaml_value() {
+    local key="$1"
+    yq -y ".$key" "$CONFIG_FILE" 2>/dev/null
+}
+
+# Kiểm tra file config
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "ERROR: File $CONFIG_FILE not found!"
+    exit 1
+fi
+
+# Đọc thông số toàn cục
+GLOBAL_LOG_PATH=$(get_yaml_value "global.logpath" | head -n 1)
+mkdir -p "$GLOBAL_LOG_PATH"
+
+# Đọc danh sách cameras (sử dụng jq filter trực tiếp)
+CAMERAS=$(yq -j '.' "$CONFIG_FILE" | jq -c '.cameras[]')
+if [ -z "$CAMERAS" ]; then
+    echo "ERROR: No cameras defined in config.yaml!"
+    exit 1
+fi
+
+#Hàm kiểm tra kết nối camera
 check_camera_connection() {
     local uri="$1"
     timeout 5s ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$uri" > /dev/null 2>&1
@@ -48,30 +71,25 @@ start_ffmpeg() {
     done
 }
 
-# Đọc cấu hình toàn cục
-GLOBAL_LOG_PATH=$(yq e '.global.logpath' "$CONFIG_FILE")
-mkdir -p "$GLOBAL_LOG_PATH"
 
 # Xử lý từng camera
-yq e '.cameras[]' "$CONFIG_FILE" | while read -r camera; do
-    # Parse thông số
-    uri=$(echo "$camera" | yq e '.uri' -)
-    segment_time=$(echo "$camera" | yq e '.segment_time' -)
-    outpath=$(echo "$camera" | yq e '.outpath' -)
-    file_name=$(echo "$camera" | yq e '.file_name' -)
-    camera_name=$(echo "$camera" | yq e '.name' -)
-    
-    # Xác định thư mục log (ưu tiên cấu hình camera nếu có)
-    camera_logpath=$(echo "$camera" | yq e '.logpath' -)
-    logpath="${camera_logpath:-$GLOBAL_LOG_PATH}"
+# Xử lý từng camera
+echo "$CAMERAS" | while read -r camera; do
+    # Parse thông số dùng jq
+    uri=$(echo "$camera" | jq -r '.uri')
+    segment_time=$(echo "$camera" | jq -r '.segment_time')
+    outpath=$(echo "$camera" | jq -r '.outpath')
+    file_name=$(echo "$camera" | jq -r '.file_name')
+    camera_name=$(echo "$camera" | jq -r '.name')
+    logpath=$GLOBAL_LOG_PATH
+
+    # Tạo thư mục
     mkdir -p "$logpath"
-    
-    # Tạo file log
-    log_file="${logpath}/${camera_name}_$(date +'%Y%m%d').log"
-    
-    # Khởi chạy
     mkdir -p "$outpath"
-    start_ffmpeg "$uri" "$segment_time" "$outpath" "$file_name" "$log_file" "$camera_name" &
+    LOG_FILE="$logpath/${camera_name}_$(date +'%Y%m%d').log"
+
+    # Khởi chạy
+    start_ffmpeg "$uri" "$segment_time" "$outpath" "$file_name" "$LOG_FILE" "$camera_name" &
 done
 
 wait
