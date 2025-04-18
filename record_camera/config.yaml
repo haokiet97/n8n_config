@@ -1,0 +1,16 @@
+global:
+  logpath: "./logs"  # Thư mục log mặc định (có thể ghi đè ở từng camera)
+
+cameras:
+  - name: "camera_1"
+    uri: "rtsp://192.168.1.231:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif"
+    segment_time: 300
+    outpath: "./recordings/cam1"
+    file_name: "cam1_%Y%m%d_%H%M%S.mp4"
+    # logpath: "./custom_logs"  # (Tùy chọn: ghi đè thư mục log cho camera này)
+
+  - name: "camera_2"
+    uri: "rtsp://192.168.1.232:554/stream"
+    segment_time: 600
+    outpath: "./recordings/cam2"
+    file_name: "cam2_%Y%m%d_%H%M%S.mp4"
