@@ -14,7 +14,7 @@ services:
       - n8n_network
     volumes:
       - ${PWD}/vol_n8n:/home/node/.n8n
-      - /media/sdcard/Videos:/home/node/Videos 
+      - /media/sdcard/Videos:/home/node/Videos
     restart: unless-stopped
   nginx:
     image: nginx:latest
@@ -23,7 +23,7 @@ services:
       - VIDEO_SECRET=${VIDEO_SECRET}
     volumes:
       - /media/sdcard/Videos:/usr/share/nginx/videos  # Mount video directory
-      - ${PWD}/nginx.conf:/etc/nginx/templates/nginx.conf.template  # Mount custom config
+      - ${PWD}/nginx.conf:/etc/nginx/conf.d/default.conf  # Mount custom config
     networks:
       - n8n_network
     depends_on:
