@@ -1,6 +1,9 @@
 #!/bin/bash
+# Get the directory where this script is located
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
-CONFIG_FILE="${PWD}/config.yaml"
+# Use the script directory to locate config.yaml
+CONFIG_FILE="${SCRIPT_DIR}/config.yaml"
 
 # Hàm đọc YAML cho yq-jq wrapper
 get_yaml_value() {
