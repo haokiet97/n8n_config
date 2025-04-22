@@ -1,4 +1,17 @@
 #!/bin/bash
+
+# Checking /media/sdcard is mounted
+if ! mountpoint -q /media/sdcard; then
+    echo "ERROR: The SD card has not been mounted /media/sdcard!" >&2
+    exit 1
+fi
+
+# Check write permisstion
+if ! [ -w /media/sdcard ]; then
+    echo "ERROR: do not have permission write to SD card!" >&2
+    exit 1
+fi
+
 # Get the directory where this script is located
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
