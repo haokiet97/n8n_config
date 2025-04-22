@@ -1,0 +1,21 @@
+{
+  "global": {
+    "logpath": "/media/sdcard/Videos/logs"
+  },
+  "cameras": [
+    {
+      "name": "tro_camera_1",
+      "uri": "rtsp://admin:kimhue99@192.168.1.231:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
+      "segment_time": 240,
+      "outpath": "/media/sdcard/Videos/tro_camera_1",
+      "file_name": "output_%Y%m%d_%H%M%S.mp4"
+    },
+    {
+      "name": "tro_camera_2",
+      "uri": "rtsp://admin:kimhue99@192.168.1.232:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
+      "segment_time": 240,
+      "outpath": "/media/sdcard/Videos/tro_camera_2",
+      "file_name": "output_%Y%m%d_%H%M%S.mp4"
+    }
+  ]
+}
