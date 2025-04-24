@@ -1,0 +1,407 @@
+{
+  "name": "Camera backupflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "triggerAtMinute": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2778085c-6ace-4333-a591-c120d1a873d1",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c8f69c12-a1e0-419c-b867-48a9cffe357a",
+              "name": "Month",
+              "value": "={{ (new Date(`${$json.Month } 1, 2023`).getMonth() + 1).toString().padStart(2, '0') || null;}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "id": "bcc95ea4-f75e-466a-8b4e-538669aba6c1",
+      "name": "Edit Fields Month"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=ls -l {{ $json.outpath }}/ | grep {{ $('Edit Fields Month').item.json.Year }}{{ $('Edit Fields Month').item.json.Month }}{{ $('Edit Fields Month').item.json[\"Day of month\"] }}_{{ (( $('Edit Fields Month').item.json.Hour - 1  + 24) % 24).toString().padStart(2, '0')}} | awk '{printf \"{\\\"filename\\\":\\\"%s\\\", \\\"size\\\":%s},\\n\", $9, $5}'"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        660,
+        0
+      ],
+      "id": "51639408-5c0e-4adc-a4d6-1123c93d1cd6",
+      "name": "Execute Command3"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nlet stdout = $json.stdout\n\nconst jsonString = `[${stdout.replace(/,\\s*$/, '')}]`;\n\n// Parse thành đối tượng JavaScript\nconst files = JSON.parse(jsonString);\n\n// Thêm filePath nếu cần (kết hợp với base path)\nconst basePath = $('Code get config cameras').item.json.outpath;\nconst result = files.map(file => ({\n  ...file,\n  filePath: `${basePath}/${file.filename}`\n}));\n\nreturn {name: $('Code get config cameras').item.json.name, telegram_chat_id: $('Code get config cameras').item.json.telegram_chat_id,message_thread_id: $('Code get config cameras').item.json.message_thread_id, stdout: result};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        840,
+        0
+      ],
+      "id": "51c23683-239d-4dd9-9fd4-55f9544e5f58",
+      "name": "Split filePaths",
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -260
+      ],
+      "id": "a217be28-d505-4d91-855c-84439c1a568e",
+      "name": "Extract from File",
+      "retryOnFail": true,
+      "executeOnce": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/Videos/config.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ],
+      "id": "862d69fa-73ed-42e2-a486-5029ee59d032",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $json.data }}",
+        "includeOtherFields": "=",
+        "include": "selected",
+        "options": {
+          "stripBinary": false
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        780,
+        -280
+      ],
+      "id": "c66e32f4-c554-481d-bc37-cf742dbf4a81",
+      "name": "Get json content",
+      "executeOnce": true,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n// for (const item of $input.all()) {\n//   item.json.myNewField = 1;\n// }\n\nreturn $input.first().json.cameras;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1020,
+        -300
+      ],
+      "id": "f5444b44-64b8-4232-8388-a188332a28cf",
+      "name": "Code get config cameras"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        640,
+        240
+      ],
+      "id": "848bd842-2d54-4470-8f5f-3cf8fb57a645",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=rm -rf {{ $('get file paths').item.json.filePath }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "id": "1765acc7-f2e6-43cd-91e2-bfe598d3e496",
+      "name": "Execute Command4",
+      "alwaysOutputData": false,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=curl -X POST -H \"Content-Type: multipart/form-data\" \\\n-F \"chat_id={{ $('Loop Over Items').item.json.telegram_chat_id }}\" \\\n-F \"message_thread_id={{ $('Loop Over Items').item.json.message_thread_id }}\" \\\n-F \"video=@{{ $json.filePath }}\" \\\n-F \"duration=240\" \\\n-F \"caption={{ $json.filename }}\" \\\n-F \"supports_streaming=true\" \\\n-F \"disable_notification=true\" \\\nhttps://api.telegram.org/bot{{ $('Get json content').item.json.bot_token }}/sendVideo"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        260
+      ],
+      "id": "14a1c77b-3010-46f7-a340-350e7e19df9e",
+      "name": "push file to telegram",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "stdout",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        900,
+        260
+      ],
+      "id": "0ddefec3-466e-4c0b-8307-421d2b6ac122",
+      "name": "get file paths"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4b06d9ca-cd86-4feb-b256-a17d8991376c",
+              "leftValue": "={{ $json.stdout }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1060,
+        0
+      ],
+      "id": "64cd03a2-4e82-40b9-b0eb-296e266b853b",
+      "name": "Filter"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields Month",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields Month": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command3": {
+      "main": [
+        [
+          {
+            "node": "Split filePaths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split filePaths": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Get json content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get json content": {
+      "main": [
+        [
+          {
+            "node": "Code get config cameras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code get config cameras": {
+      "main": [
+        [
+          {
+            "node": "Execute Command3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "get file paths",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command4": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "push file to telegram": {
+      "main": [
+        [
+          {
+            "node": "Execute Command4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get file paths": {
+      "main": [
+        [
+          {
+            "node": "push file to telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "8IitxcxyWAW8lBtc",
+    "timeSavedPerExecution": 360
+  },
+  "versionId": "d750dd03-9927-46c6-8386-1b5f376dad90",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "11e684a75c35047626948cc42d37d1929534045f2608514946c987b63573b083"
+  },
+  "id": "8IitxcxyWAW8lBtc",
+  "tags": []
+}
