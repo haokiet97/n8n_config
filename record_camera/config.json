@@ -2,6 +2,7 @@
   "global": {
     "logpath": "/media/sdcard/Videos/logs"
   },
+  "bot_token": "mock_token",
   "cameras": [
     {
       "name": "tro_camera_1",
