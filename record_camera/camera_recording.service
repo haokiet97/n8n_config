@@ -1,0 +1,13 @@
+[Unit]
+Description=Start FFmpeg recording from RTSP
+After=network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/root/camera_records/start_recording.sh
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
