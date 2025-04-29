@@ -6,7 +6,7 @@ if ! mountpoint -q /media/sdcard; then
     exit 1
 fi
 
-# Check write permisstion
+# Check write permission
 if ! [ -w /media/sdcard ]; then
     echo "ERROR: do not have permission write to SD card!" >&2
     exit 1
@@ -15,40 +15,40 @@ fi
 # Get the directory where this script is located
 SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 
-# Use the script directory to locate config.yaml
-CONFIG_FILE="${SCRIPT_DIR}/config.yaml"
+# Use the script directory to locate config.json
+CONFIG_FILE="${SCRIPT_DIR}/config.json"
 
-# Hàm đọc YAML cho yq-jq wrapper
-get_yaml_value() {
+# Function to read JSON values
+get_json_value() {
     local key="$1"
-    yq -y ".$key" "$CONFIG_FILE" 2>/dev/null
+    jq -r ".$key" "$CONFIG_FILE" 2>/dev/null
 }
 
-# Kiểm tra file config
+# Check config file exists
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "ERROR: File $CONFIG_FILE not found!"
     exit 1
 fi
 
-# Đọc thông số toàn cục
-GLOBAL_LOG_PATH=$(get_yaml_value "global.logpath" | head -n 1)
+# Read global settings
+GLOBAL_LOG_PATH=$(get_json_value "global.logpath")
 mkdir -p "$GLOBAL_LOG_PATH"
 
-# Đọc danh sách cameras (sử dụng jq filter trực tiếp)
-CAMERAS=$(yq -j '.' "$CONFIG_FILE" | jq -c '.cameras[]')
+# Read cameras array
+CAMERAS=$(jq -c '.cameras[]' "$CONFIG_FILE")
 if [ -z "$CAMERAS" ]; then
-    echo "ERROR: No cameras defined in config.yaml!"
+    echo "ERROR: No cameras defined in config.json!"
     exit 1
 fi
 
-#Hàm kiểm tra kết nối camera
+# Camera connection check function
 check_camera_connection() {
     local uri="$1"
     timeout 5s ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$uri" > /dev/null 2>&1
     return $?
 }
 
-# Hàm ghi hình
+# FFmpeg recording function
 start_ffmpeg() {
     local uri="$1"
     local segment_time="$2"
@@ -83,11 +83,9 @@ start_ffmpeg() {
     done
 }
 
-
-# Xử lý từng camera
-# Xử lý từng camera
+# Process each camera
 echo "$CAMERAS" | while read -r camera; do
-    # Parse thông số dùng jq
+    # Parse parameters using jq
     uri=$(echo "$camera" | jq -r '.uri')
     segment_time=$(echo "$camera" | jq -r '.segment_time')
     outpath=$(echo "$camera" | jq -r '.outpath')
@@ -95,12 +93,12 @@ echo "$CAMERAS" | while read -r camera; do
     camera_name=$(echo "$camera" | jq -r '.name')
     logpath=$GLOBAL_LOG_PATH
 
-    # Tạo thư mục
+    # Create directories
     mkdir -p "$logpath"
     mkdir -p "$outpath"
     LOG_FILE="$logpath/${camera_name}_$(date +'%Y%m%d').log"
 
-    # Khởi chạy
+    # Start recording
     start_ffmpeg "$uri" "$segment_time" "$outpath" "$file_name" "$LOG_FILE" "$camera_name" &
 done
 
