@@ -3,9 +3,11 @@ Description=Start FFmpeg recording from RTSP
 After=network.target
 
 [Service]
-Type=simple
+Type=forking
 User=root
 ExecStart=/root/camera_records/start_recording.sh
+ExecStop=/bin/sh -c "pkill -9 ffmpeg; exit 0"
+KillMode=process
 Restart=on-failure
 RestartSec=5
 
