@@ -57,15 +57,30 @@ start_ffmpeg() {
     local log_file="$5"
     local camera_name="$6"
 
+    local retry_count=0
+    local max_retries=3
+
     while true; do
+        # Kiểm tra kết nối camera trước khi start
         if ! check_camera_connection "$uri"; then
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] ERROR: Cannot connect to camera. Retrying in 30s..." >> "$log_file"
+            retry_count=$((retry_count + 1))
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] ERROR: Cannot connect to camera. Retry $retry_count/$max_retries. Waiting 30s..." >> "$log_file"
+            
+            if [ $retry_count -ge $max_retries ]; then
+                echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] CRITICAL: Max retries reached. Giving up." >> "$log_file"
+                exit 1
+            fi
+            
             sleep 30
             continue
         fi
 
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] Starting FFmpeg..." >> "$log_file"
+        # Reset retry count khi kết nối thành công
+        retry_count=0
         
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] Camera connected. Starting FFmpeg recording..." >> "$log_file"
+        
+        # Chạy FFmpeg
         ffmpeg \
             -loglevel error \
             -rtsp_transport tcp \
@@ -78,8 +93,9 @@ start_ffmpeg() {
             -strftime 1 \
             "$outpath/$file_name" 2>> "$log_file"
 
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] FFmpeg exited. Restarting in 10s..." >> "$log_file"
-        sleep 10
+        # FFmpeg đã thoát - chờ 30s và restart
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] FFmpeg process ended. Restarting in 30s..." >> "$log_file"
+        sleep 30
     done
 }
 
