@@ -44,7 +44,7 @@ fi
 # Camera connection check function
 check_camera_connection() {
     local uri="$1"
-    timeout 5s ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$uri" > /dev/null 2>&1
+    timeout 3s ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$uri" > /dev/null 2>&1
     return $?
 }
 
@@ -64,13 +64,7 @@ start_ffmpeg() {
         # Kiểm tra kết nối camera trước khi start
         if ! check_camera_connection "$uri"; then
             retry_count=$((retry_count + 1))
-            echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] ERROR: Cannot connect to camera. Retry $retry_count/$max_retries. Waiting 30s..." >> "$log_file"
-            
-            if [ $retry_count -ge $max_retries ]; then
-                echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] CRITICAL: Max retries reached. Giving up." >> "$log_file"
-                exit 1
-            fi
-            
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] ERROR: Cannot connect to camera. Retry $retry_count/$max_retries. Waiting 30s..." >> "$log_file"          
             sleep 30
             continue
         fi
@@ -81,7 +75,7 @@ start_ffmpeg() {
         echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] Camera connected. Starting FFmpeg recording..." >> "$log_file"
         
         # Chạy FFmpeg
-        ffmpeg \
+	timeout 1680s ffmpeg \
             -loglevel error \
             -rtsp_transport tcp \
             -i "$uri" \
@@ -93,9 +87,6 @@ start_ffmpeg() {
             -strftime 1 \
             "$outpath/$file_name" 2>> "$log_file"
 
-        # FFmpeg đã thoát - chờ 30s và restart
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - [$camera_name] FFmpeg process ended. Restarting in 30s..." >> "$log_file"
-        sleep 30
     done
 }
 
