@@ -41,8 +41,9 @@ process_camera() {
     read current_year current_month adjusted_day adjusted_hour <<< $(get_time_variables)
 
     # Pattern tìm file (giống như trong n8n)
-    #local pattern="output_${current_year}${current_month}${adjusted_day}_${adjusted_hour}*"
+    local dt_pattern="output_${current_year}${current_month}${adjusted_day}_${adjusted_hour}*"
     local pattern="output_"
+    local max_filename = "${dt_pattern}5959"
     echo "Processing camera: $camera_name"
     echo "Looking for files in: $outpath"
     echo "Pattern: $pattern"
@@ -50,7 +51,11 @@ process_camera() {
     # Tìm các file phù hợp
     local files=()
     while IFS= read -r -d '' file; do
-        files+=("$file")
+        filename=$(basename "$file")
+        if [[ "$max_filename" >= "$filename" ]]; then
+            files+=("$file")
+        fi
+        
     done < <(find "$outpath" -maxdepth 1 -type f -name "*${pattern}*" -print0 2>/dev/null)
 
     # Kiểm tra có file không
