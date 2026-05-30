@@ -1,0 +1,26 @@
+{
+  "global": {
+    "logpath": "/media/sdcard/Videos/logs"
+  },
+  "bot_token": "",
+  "cameras": [
+    {
+      "name": "tro1",
+      "telegram_chat_id": "-1002226167490",
+      "message_thread_id": "13",
+      "uri": "rtsp://admin:kimhue99@192.168.1.231:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
+      "segment_time": 180,
+      "outpath": "/mnt/media/camera_recording/tro1",
+      "file_name": "output_%Y%m%d_%H%M%S.mp4"
+    },
+    {
+      "name": "tro2",
+      "telegram_chat_id": "-1002226167490",
+      "message_thread_id": "374",
+      "uri": "rtsp://admin:kimhue99@192.168.1.232:554/cam/realmonitor?channel=1&subtype=0&unicast=true&proto=Onvif",
+      "segment_time": 180,
+      "outpath": "/mnt/media/camera_recording/tro2",
+      "file_name": "output_%Y%m%d_%H%M%S.mp4"
+    }
+  ]
+}
