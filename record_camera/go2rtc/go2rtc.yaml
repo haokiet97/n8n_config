@@ -1,0 +1,20 @@
+streams:
+  tro_1_main:
+    - onvif://admin:kimhue99@192.168.100.121?subtype=Profile000
+  
+  record_tro_1_main: 
+    - exec:ffmpeg -i rtsp://0.0.0.0:8554/tro_1_main -c copy -f segment -segment_time 180 -segment_atclocktime 1 -strftime 1 -reset_timestamps 1 "/media/camera_recording/tro1/output_%Y%m%d_%H%M%S.mp4"
+
+  tro_2_main:
+    - onvif://admin:kimhue99@192.168.100.122?subtype=Profile000
+  
+  record_tro_2_main: 
+    - exec:ffmpeg -i rtsp://0.0.0.0:8554/tro_2_main -c copy -f segment -segment_time 180 -segment_atclocktime 1 -strftime 1 -reset_timestamps 1 "/media/camera_recording/tro2/output_%Y%m%d_%H%M%S.mp4"
+
+api:
+  listen: ":1984"
+
+# Preload stream để nó luôn active
+preload:
+  record_tro_1_main: video
+  record_tro_2_main: video
